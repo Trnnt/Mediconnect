@@ -4,8 +4,8 @@ import userModel from "../models/userModel.js";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import jwt from "jsonwebtoken";
-import {v2 as cloudinary} from 'cloudinary'  
-import razorpay from 'razorpay';
+import crypto from "crypto";
+import Razorpay from "razorpay";
 
     
 
@@ -25,6 +25,12 @@ const registerUser = async (req, res) => {
             return res.json({ success: false, message: "Please enter a valid email" })
         }
 
+        const normalizedEmail = email.trim().toLowerCase()
+        const existingUser = await userModel.findOne({ email: normalizedEmail })
+        if (existingUser) {
+            return res.json({ success: false, message: "An account with this email already exists" })
+        }
+
         // validating strong password
         if (password.length < 8) {
             return res.json({ success: false, message: "Please enter a strong password" })
@@ -35,8 +41,8 @@ const registerUser = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt)
 
         const userData = {
-            name,
-            email,
+            name: name.trim(),
+            email: normalizedEmail,
             password: hashedPassword,
         }
 
@@ -57,7 +63,7 @@ const loginUser = async (req, res) => {
 
     try {
         const { email, password } = req.body;
-        const user = await userModel.findOne({ email })
+        const user = await userModel.findOne({ email: email.trim().toLowerCase() })
 
         if (!user) {
             return res.json({ success: false, message: "User does not exist" })
@@ -105,13 +111,20 @@ const updateProfile = async (req, res) => {
             return res.json({ success: false, message: "Data Missing" })
         }
 
-        await userModel.findByIdAndUpdate(userId, { name, phone, address: JSON.parse(address), dob, gender })
+        let parsedAddress = { line1: '', line2: '' }
+        if (address) {
+            try {
+                parsedAddress = JSON.parse(address)
+            } catch {
+                parsedAddress = { line1: '', line2: '' }
+            }
+        }
+
+        await userModel.findByIdAndUpdate(userId, { name, phone, address: parsedAddress, dob, gender })
 
         if (imageFile) {
 
-            // upload image to cloudinary
-            const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" })
-            const imageURL = imageUpload.secure_url
+            const imageURL = `${req.protocol}://${req.get("host")}/uploads/${imageFile.filename}`
 
             await userModel.findByIdAndUpdate(userId, { image: imageURL })
         }
@@ -229,58 +242,99 @@ const listAppointment = async (req, res) => {
     }
 }
 
-const razorpayInstance = new razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-})
-
-// API to make payment of appointment using razorpay
+// API to create a Razorpay order
 const paymentRazorpay = async (req, res) => {
     try {
+        const { userId, appointmentId } = req.body
 
-        const { appointmentId } = req.body
-        const appointmentData = await appointmentModel.findById(appointmentId)
-
-        if (!appointmentData || appointmentData.cancelled) {
-            return res.json({ success: false, message: 'Appointment Cancelled or not found' })
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            return res.status(503).json({
+                success: false,
+                message: "Razorpay credentials are not configured"
+            })
         }
 
-        // creating options for razorpay payment
-        const options = {
-            amount: appointmentData.amount * 100,
-            currency: process.env.CURRENCY,
-            receipt: appointmentId,
+        const appointment = await appointmentModel.findById(appointmentId)
+        if (!appointment || appointment.cancelled) {
+            return res.json({ success: false, message: "Appointment not found" })
+        }
+        if (appointment.userId !== userId) {
+            return res.json({ success: false, message: "Unauthorized action" })
         }
 
-        // creation of an order
-        const order = await razorpayInstance.orders.create(options)
+        const razorpay = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET
+        })
+
+        const order = await razorpay.orders.create({
+            amount: Math.round(Number(appointment.amount) * 100),
+            currency: "INR",
+            receipt: appointmentId.toString().slice(-40)
+        })
+
+        await appointmentModel.findByIdAndUpdate(appointmentId, {
+            razorpayOrderId: order.id
+        })
 
         res.json({ success: true, order })
-
     } catch (error) {
         console.log(error)
-        res.json({ success: false, message: error.message })
+        res.status(500).json({ success: false, message: error.message })
     }
 }
 
-// API to verify payment of razorpay
+// API to verify Razorpay payment signature
 const verifyRazorpay = async (req, res) => {
     try {
-        const { razorpay_order_id } = req.body
-        const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
+        const { userId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
 
-        if (orderInfo.status === 'paid') {
-            await appointmentModel.findByIdAndUpdate(orderInfo.receipt, { payment: true })
-            res.json({ success: true, message: "Payment Successful" })
+        if (!process.env.RAZORPAY_KEY_SECRET) {
+            return res.status(503).json({
+                success: false,
+                message: "Razorpay credentials are not configured"
+            })
         }
-        else {
-            res.json({ success: false, message: 'Payment Failed' })
+
+        const expectedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            .digest("hex")
+
+        if (expectedSignature !== razorpay_signature) {
+            return res.json({ success: false, message: "Payment verification failed" })
         }
+
+        const appointment = await appointmentModel.findOne({
+            razorpayOrderId: razorpay_order_id
+        })
+        if (!appointment) {
+            return res.json({ success: false, message: "Payment order not found" })
+        }
+        if (appointment.userId !== userId) {
+            return res.json({ success: false, message: "Unauthorized action" })
+        }
+
+        await appointmentModel.findByIdAndUpdate(appointment._id, {
+            payment: true,
+            razorpayPaymentId: razorpay_payment_id
+        })
+
+        res.json({ success: true, message: "Payment verified" })
     } catch (error) {
         console.log(error)
-        res.json({ success: false, message: error.message })
+        res.status(500).json({ success: false, message: error.message })
     }
 }
 
-
-export {registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, paymentRazorpay, verifyRazorpay}
+export {
+    registerUser,
+    loginUser,
+    getProfile,
+    updateProfile,
+    bookAppointment,
+    listAppointment,
+    cancelAppointment,
+    paymentRazorpay,
+    verifyRazorpay
+}

@@ -35,9 +35,11 @@ const AppContextProvider = (props) => {
             if (data.success) {
                 const safeUserData = {
                     ...data.userData,
-                    address: data.userData.address || { line1: '', line2: '' },
-                    gender: data.userData.gender || '',
-                    dob: data.userData.dob || ''
+                    address: data.userData?.address && typeof data.userData.address === 'object'
+                        ? data.userData.address
+                        : { line1: '', line2: '' },
+                    gender: data.userData?.gender || '',
+                    dob: data.userData?.dob || ''
                 }
                 setUserData(safeUserData)
             } else {

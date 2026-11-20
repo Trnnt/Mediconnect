@@ -1,13 +1,13 @@
-# Appointy - Doctor Appointment Web App
+# Mediconnect - Doctor Appointment Web App
 
-**Appinty** is a full-stack web application designed to make healthcare more accessible by simplifying the process of booking doctor appointments. It offers three levels of login: **Patient**, **Doctor**, and **Admin**, each with distinct features tailored to their roles. The app integrates **online payment gateways (Stripe and Razorpay)** to facilitate seamless and secure payments. Built using the **MERN stack** (MongoDB, Express.js, React.js, and Node.js), Appointy provides an efficient, user-friendly experience for both patients and healthcare providers.
+**Mediconnect** is a full-stack web application designed to make healthcare more accessible by simplifying the process of booking doctor appointments. It offers three levels of login: **Patient**, **Doctor**, and **Admin**, each with distinct features tailored to their roles. The app integrates **online payment gateways (Stripe and Razorpay)** to facilitate seamless and secure payments. Built using the **MERN stack** (MongoDB, Express.js, React.js, and Node.js), Mediconnect provides an efficient, user-friendly experience for both patients and healthcare providers.
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: React.js
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB
-- **Payment Gateways**: Razorpay
+- **Payment Gateways**: Razorpay-not integrated now
 - **Authentication**: JSON Web Token (JWT)
 
 ## 🔑 Key Features
@@ -48,7 +48,7 @@
 
 ## 📄 About Page
 
-- Provides information about **Appointy’s vision** and mission.
+- Provides information about **Mediconnect’s vision** and mission.
 - **Why Choose Us** section highlights:
   - **Efficiency**: Streamlined appointment process.
   - **Convenience**: Online booking and payment.
@@ -115,8 +115,8 @@ To set up and run this project locally:
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/appointy.git
-   cd appointy
+   git clone https://github.com/your-username/mediconnect.git
+   cd mediconnect
    ```
 
 2. **Install Dependencies**:
@@ -143,7 +143,7 @@ To set up and run this project locally:
 ## 📦 Folder Structure
 
 ```plaintext
-appointy/
+mediconnect/
 ├── client/          # Frontend (React.js)
 ├── server/          # Backend (Node.js, Express.js)
 ├── models/          # MongoDB Schemas
@@ -155,10 +155,6 @@ appointy/
 ├── public/          # Static Files
 └── .env             # Environment Variables
 ```
-
-## 🤝 Contributing
-
-We welcome contributions! Please feel free to submit issues, fork the repository, and open pull requests.
 
 
 ## 🌟 Acknowledgements

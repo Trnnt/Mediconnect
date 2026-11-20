@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+﻿/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
@@ -10,7 +10,10 @@ export default {
         'auto':'repeat(auto-fill, minmax(200px, 1fr))'
       },
       colors:{
-        'primary':'#5F6FFF'
+        'primary':'#004C7F',
+        'primary-dark':'#00324F',
+        'primary-light':'#E6F2F6',
+        'accent':'#008080'
       }
     },
   },

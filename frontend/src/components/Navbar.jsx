@@ -17,12 +17,12 @@ const Navbar = () => {
 
   return (
     <div className='flex items-center justify-between text-sm pt-2 pb-0 border-b border-b-gray-400'>
-      <div className="w-28 h-28 overflow-hidden">
+      <div className="w-32 h-20 overflow-hidden">
         <img
           onClick={() => navigate('/')}
           src={assets.logo || '/fallback-logo.png'}
           alt="Logo"
-          className="w-full h-full object-cover object-center cursor-pointer"
+          className="w-full h-full object-contain object-center cursor-pointer"
         />
       </div>
 
@@ -39,6 +39,9 @@ const Navbar = () => {
         <li className='pb-0.5'>
           <NavLink to='/contact' className={({ isActive }) => isActive ? 'border-b-2 border-primary' : ''}>CONTACT</NavLink>
         </li>
+        <li className='pb-0.5'>
+          <NavLink to='/careers' className={({ isActive }) => isActive ? 'border-b-2 border-primary' : ''}>CAREERS</NavLink>
+        </li>
       </ul>
 
       <div className='flex items-center gap-4'>
@@ -46,7 +49,7 @@ const Navbar = () => {
         {/* ✅ Admin Panel Button - show only on home page  */}
         {location.pathname === '/' && (
           <button
-            onClick={() => window.open('https://appointy-six.vercel.app', '_blank')}
+            onClick={() => window.open('http://localhost:5174', '_blank')}
             className='bg-primary text-white text-xs px-4 py-2 rounded-full hover:bg-gray-700 hidden md:block'
           >
             Admin Panel
@@ -87,6 +90,7 @@ const Navbar = () => {
             <NavLink onClick={() => setShowMenu(false)} to='/doctors' ><p className='px-4 py-2 rounded full inline-block'>ALL DOCTORS</p></NavLink>
             <NavLink onClick={() => setShowMenu(false)} to='/about' ><p className='px-4 py-2 rounded full inline-block'>ABOUT</p></NavLink>
             <NavLink onClick={() => setShowMenu(false)} to='/contact' ><p className='px-4 py-2 rounded full inline-block'>CONTACT</p></NavLink>
+            <NavLink onClick={() => setShowMenu(false)} to='/careers' ><p className='px-4 py-2 rounded full inline-block'>CAREERS</p></NavLink>
           </ul>
         </div>
       </div>

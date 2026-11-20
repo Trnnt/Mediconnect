@@ -5,11 +5,13 @@ import Doctors from './pages/Doctors'
 import Login from './pages/Login'
 import About from './pages/About'
 import Contact from './pages/Contact'
+import ExploreJobs from './pages/ExploreJobs'
 import MyProfile from './pages/MyProfile'
 import MyAppointment from './pages/MyAppointment'
 import Appointment from './Appointment'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import AiChatWidget from './components/AiChatWidget'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -25,11 +27,13 @@ const App = () => {
         <Route path='/login' element={<Login />} />
         <Route path='/about' element={<About />} />
         <Route path='/contact' element={<Contact />} />
+        <Route path='/careers' element={<ExploreJobs />} />
         <Route path='/my-profile' element={<MyProfile />} />
         <Route path='/my-appointments' element={<MyAppointment />} />
         <Route path='/appointment/:docId' element={<Appointment />} />
 
       </Routes>
+      <AiChatWidget />
       <Footer />
     </div>
   )

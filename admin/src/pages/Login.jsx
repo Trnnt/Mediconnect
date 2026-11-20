@@ -10,6 +10,7 @@ const Login = () => {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL
 
@@ -18,27 +19,36 @@ const Login = () => {
 
   const onSubmitHandler = async (event) => { 
     event.preventDefault();
+    setIsSubmitting(true)
 
-    if (state === 'Admin') {
-
-      const { data } = await axios.post(backendUrl + '/api/admin/login', { email, password })
-      if (data.success) {
-        setAToken(data.token)
-        localStorage.setItem('aToken', data.token)
+    try {
+      if (state === 'Admin') {
+        const { data } = await axios.post(backendUrl + '/api/admin/login', {
+          email: email.trim().toLowerCase(),
+          password
+        })
+        if (data.success) {
+          setAToken(data.token)
+          localStorage.setItem('aToken', data.token)
+        } else {
+          toast.error(data.message)
+        }
       } else {
-        toast.error(data.message)
+        const { data } = await axios.post(backendUrl + '/api/doctor/login', {
+          email: email.trim().toLowerCase(),
+          password
+        })
+        if (data.success) {
+          setDToken(data.token)
+          localStorage.setItem('dToken', data.token)
+        } else {
+          toast.error(data.message)
+        }
       }
-
-    } else {
-
-      const { data } = await axios.post(backendUrl + '/api/doctor/login', { email, password })
-      if (data.success) {
-        setDToken(data.token)
-        localStorage.setItem('dToken', data.token)
-      } else {
-        toast.error(data.message)
-      }
-
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setIsSubmitting(false)
     }
 
   }
@@ -55,7 +65,9 @@ const Login = () => {
           <p>Password</p>
           <input onChange={(e) => setPassword(e.target.value)} value={password} className='border border-[#DADADA] rounded w-full p-2 mt-1' type="password" required />
         </div>
-        <button className='bg-primary text-white w-full py-2 rounded-md text-base'>Login</button>
+        <button type='submit' disabled={isSubmitting} className='bg-primary text-white w-full py-2 rounded-md text-base disabled:opacity-60'>
+          {isSubmitting ? 'Please wait...' : 'Login'}
+        </button>
         {
           state === 'Admin'
             ? <p>Doctor Login? <span onClick={() => setState('Doctor')} className='text-primary underline cursor-pointer'>Click here</span></p>

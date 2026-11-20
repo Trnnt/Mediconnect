@@ -19,7 +19,7 @@ const Navbar = () => {
   }
 
   const goToUserPanel = () => {
-    window.location.href = 'https://appointy-roan.vercel.app/'
+    window.location.href = 'http://localhost:5173/'
   }
 
   const isOnDashboard =
@@ -33,7 +33,7 @@ const Navbar = () => {
         {/* Logo */}
         <img
           onClick={() => navigate('/')}
-          className='w-36 sm:w-40 cursor-pointer'
+          className='w-36 sm:w-40 h-auto max-h-24 object-contain cursor-pointer'
           src={assets.admin_logo}
           alt="Logo"
         />

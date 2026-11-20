@@ -3,7 +3,6 @@ import appointmentModel from "../models/appointmentModel.js";
 import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcrypt";
 import validator from "validator";
-import { v2 as cloudinary } from "cloudinary";
 import userModel from "../models/userModel.js"
 
 // API for admin login
@@ -47,8 +46,11 @@ const addDoctor = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
-    const imageUrl = imageUpload.secure_url;
+    if (!imageFile) {
+      return res.status(400).json({ success: false, message: "Doctor image is required" });
+    }
+
+    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${imageFile.filename}`;
 
     const doctorData = {
       name,
